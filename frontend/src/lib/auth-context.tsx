@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { authApi, api } from './api';
 import { toast } from 'sonner';
 
@@ -20,6 +20,7 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   register: (username: string, email: string, password: string, country: string) => Promise<boolean>;
+  completeWikimediaLogin: () => Promise<boolean>;
   updateUser: (updates: Partial<User>) => void;
 }
 
@@ -97,6 +98,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const completeWikimediaLogin = useCallback(async (): Promise<boolean> => {
+    try {
+      const response = await authApi.wikimediaSession();
+      if (response.success) {
+        api.setTokens(response.accessToken, response.refreshToken);
+        setUser(response.user);
+        toast.success('Wikimedia login successful!');
+        return true;
+      }
+      return false;
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Wikimedia login failed');
+      return false;
+    }
+  }, []);
+
   const updateUser = async (updates: Partial<User>) => {
     if (user) {
       try {
@@ -122,7 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, register, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, register, completeWikimediaLogin, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

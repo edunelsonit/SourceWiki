@@ -190,6 +190,8 @@ export const authApi = {
 
   changePassword: (currentPassword: string, newPassword: string) =>
     api.put('/auth/password', { currentPassword, newPassword }),
+
+  wikimediaSession: () => api.post('/auth/wikimedia/session'),
 };
 
 // Submission API

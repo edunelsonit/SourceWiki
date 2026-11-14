@@ -60,8 +60,26 @@ JWT_REFRESH_SECRET=your-super-secret-refresh-key
 JWT_EXPIRE=15m
 JWT_REFRESH_EXPIRE=7d
 FRONTEND_URL=http://localhost:5173
+WIKIMEDIA_CLIENT_ID=
+WIKIMEDIA_CLIENT_SECRET=
+WIKIMEDIA_REDIRECT_URI=http://localhost:5000/api/auth/wikimedia/callback
 MAX_FILE_SIZE=10485760
 ```
+
+### Wikimedia OAuth 2.0 setup
+
+Register an OAuth 2.0 application through [Meta-Wiki's OAuth consumer registration](https://meta.wikimedia.org/wiki/Special:OAuthConsumerRegistration/propose), enable the authorization-code grant, and register the exact callback URL from `WIKIMEDIA_REDIRECT_URI`.
+
+The backend validates the OAuth `state` cookie, exchanges the code at Meta-Wiki, reads the Wikimedia profile, and issues the same SourceWiki JWT access and refresh tokens used by password login. A short-lived HTTP-only handoff cookie keeps application JWTs out of redirect URLs. Keep `WIKIMEDIA_CLIENT_SECRET` server-side and request only the permissions required by the application. See the [Wikimedia authentication documentation](https://www.mediawiki.org/wiki/Wikimedia_APIs/Authentication).
+
+The stable Wikimedia `sub` identifier is stored in `users.wikimediaId`; `users.wikimediaUsername` stores the current display name. Existing databases must add these nullable columns before deploying this feature:
+
+```sql
+ALTER TABLE users ADD COLUMN wikimediaId VARCHAR(100) NULL UNIQUE;
+ALTER TABLE users ADD COLUMN wikimediaUsername VARCHAR(255) NULL;
+```
+
+Fresh databases receive the fields through Sequelize synchronization.
 
 ## Running the Server
 
@@ -80,6 +98,9 @@ Server runs at `http://localhost:5000` by default. All routes are mounted under 
 ### Auth — `/api/auth`
 - `POST /api/auth/register` — Register new user
 - `POST /api/auth/login` — Login user
+- `GET /api/auth/wikimedia` — Start Wikimedia OAuth 2.0 login
+- `GET /api/auth/wikimedia/callback` — Complete Wikimedia OAuth callback
+- `POST /api/auth/wikimedia/session` — Exchange the short-lived OAuth handoff for SourceWiki JWTs
 - `POST /api/auth/logout` — Logout (auth required)
 - `GET /api/auth/me` — Get current user (auth required)
 - `POST /api/auth/refresh` — Refresh access token

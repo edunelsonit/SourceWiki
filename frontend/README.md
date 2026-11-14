@@ -61,6 +61,7 @@ There is currently no frontend test or lint script. Run `npm run build` before s
 | --- | --- |
 | `/` | Landing page |
 | `/auth` | Login and registration |
+| `/auth/callback` | Completes Wikimedia login in the browser |
 | `/directory` | Public reference directory |
 | `/country/:countryCode` | Country sources and statistics |
 | `/submit` | Submit a reference for verification |
@@ -111,6 +112,12 @@ const { user, loading, login, logout, register, updateUser } = useAuth();
 ```
 
 Users have `contributor`, `verifier`, or `admin` roles. On startup, the provider calls `/auth/me` when an access token exists. The client stores `accessToken` and `refreshToken` in `localStorage` and clears them when authentication fails.
+
+### Wikimedia login
+
+The login page includes **Continue with Wikimedia**. Selecting it sends the browser to `/api/auth/wikimedia`. The backend performs the Wikimedia OAuth 2.0 authorization-code flow, creates or finds the local SourceWiki user, and redirects to `/auth/callback`. That callback exchanges a short-lived HTTP-only handoff cookie for the normal SourceWiki JWT tokens and then redirects the user to the home page.
+
+Configure the OAuth client ID, secret, and callback URL in `backend/.env`; the client secret must never be exposed as a frontend or `VITE_*` variable. See [`backend/README.md`](../backend/README.md) for registration and database requirements.
 
 Authenticated pages should handle `loading` and unauthenticated states explicitly. Role authorization must also be enforced by the backend; frontend checks are only a user-experience layer.
 

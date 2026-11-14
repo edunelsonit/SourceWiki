@@ -131,6 +131,9 @@ export const AuthPage: React.FC = () => {
                       'Login'
                     )}
                   </Button>
+                  <Button type="button" variant="outline" className="w-full" onClick={() => { window.location.href = `${import.meta.env.VITE_API_URL || '/api'}/auth/wikimedia`; }} disabled={loading}>
+                    Continue with Wikimedia
+                  </Button>
                 </form>
               </CardContent>
             </Card>

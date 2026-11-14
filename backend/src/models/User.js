@@ -69,6 +69,15 @@ User.init({
       is: { args: /^\S+@\S+\.\S+$/, msg: 'Please provide a valid email' }
     }
   },
+  wikimediaId: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+    unique: true
+  },
+  wikimediaUsername: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
   password: {
     type: DataTypes.STRING(255),
     allowNull: false,
